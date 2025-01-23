@@ -1,0 +1,95 @@
+import matplotlib.pyplot as pit 
+import pandas as pd 
+import numpy as np
+
+
+path = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML0101EN-SkillsNetwork/labs/Module%202/data/FuelConsumptionCo2.csv"
+
+df = pd.read_csv(path)
+
+print(df.head())
+
+print(df.describe())
+
+cdf = df[["ENGINESIZE", 'CYLINDERS', 'FUELCONSUMPTION_COMB', "CO2EMISSIONS"]]
+
+viz = cdf[["ENGINESIZE", 'CYLINDERS', 'FUELCONSUMPTION_COMB', "CO2EMISSIONS"]]
+viz.hist()
+
+
+pit.show()
+pit.scatter(cdf.FUELCONSUMPTION_COMB, cdf.CO2EMISSIONS, color='blue')
+pit.xlabel("FUELCONSUMPTION_COMB")
+pit.ylablel('EMISSION')
+pit.show()
+
+pit.scatter(cdf.CYLINDERS, cdf.CO2EMISSIONS, color='blue')
+pit.xlabel("Cylinders")
+pit.ylabel('Emission')
+pit.show()
+
+pit.scatter(cdf.ENGINESIZE, cdf.CO2EMISSIONS, color='blue')
+pit.xlabel("Engine size")
+pit.ylabel('Emission')
+pit.show()
+
+
+
+
+
+#splitting into test and trainnig sets 
+
+msk = np.random.rand(len(df)) < 0.8
+train = cdf[msk]
+test = cdf[~msk]
+
+
+# training the model 
+
+pit.scatter(train.ENGINESIZE, train.CO2EMISSIONS, color = 'blue')
+pit.xlabel("Engine size")
+pit.ylabel("Emission")
+pit.title("Training data")
+pit.show()
+
+from sklearn import linear_model
+
+regr = linear_model.LinearRegression()
+train_x = np.asanyarray(train[['ENIGINESIZE']])
+train_y = np.asanyarray(train[['CO2EMISSIONS']])
+
+regr.fit(train_x, train_y)
+
+print('Coefficients: ', regr.coef_)
+print('Intercept: ', regr.intercept_)
+
+# plotting the regression line 
+pit.scatter(train.ENGINESIZE, train.CO2EMISSIONS,  color = 'blue')
+pit.plot(train_x, regr.coef_[0][0]*train_x + regr.intercept_[0], '-r')
+pit.xlabel("Engine size")
+pit.ylabel('Emission')
+pit.show()
+
+
+# testing the model
+
+from sklearn import r2_score
+
+test_x = np.asanyarray(test[['ENGINESIZE']])
+test_y = np.asanyarray(test[['CO2EMISSIONS']])
+test_y_ = regr.predict(test_x)
+
+print("Mean absolute error: %.2f" % np.mean(np.absolute(test_y_ - test_y)))
+
+print("Residual sum of squares (MSE): %.2f" % np.mean((test_y_ - test_y)**2))
+
+print("R2-score: %.2f" % r2_score(test_y, test_y_))
+
+def predict_co2(engine_size):
+    engine_dize_array = np.array([[engine_size]])
+    predeicted_co2 = regr.predict(engine_dize_array)
+    return predeicted_co2[0][0]
+
+input_engine_size = float(input('Enter the engine size: '))
+predict_co2 = predict_co2(input_engine_size)
+print(f'Predicted co2 emission foe engine size' {input_engine_size}: {predict_co2: .2f}) 
